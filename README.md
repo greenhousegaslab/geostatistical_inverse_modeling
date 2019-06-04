@@ -29,13 +29,13 @@ This approach works (a) if the number of observations is less than ~50,000 and (
 Which set of scripts should I use?
 ----------------------------------------------------------
 
-Q: Are there bounds on the fluxes? For example, do the fluxes need to be non-negative?
+Q: Are there bounds on the fluxes? For example, do the fluxes need to be non-negative? <br>
 Use the L-BFGS-B (option 4). One could also use option (1) with a variable transformation to enforce non-negativity (see Snodgrass and Kitanidis 1997 [https://doi.org/10.1029/96WR03753] for one example).
 
-Q: Is the number of observations less than ~50,000, and is an explicit H matrix available?
+Q: Is the number of observations less than ~50,000, and is an explicit H matrix available? <br>
 Use the direct solution (option 1). Sometimes, inverse problems with between 25,000 and 50,000 observations are too large for the direct solution (depending upon the problem and the computer system involved), and one may need to use option 2 or 3.
 
-Q: What if my atmospheric model does not produce an explicit H matrix?
+Q: What if my atmospheric model does not produce an explicit H matrix? <br>
 Use option (2) or (3) (or option 4 for a problem with bounds). Note that you will need both a forward model and an adjoint model to use any of the inverse modeling approaches outlined above.
 
 
@@ -62,80 +62,80 @@ List of scripts in the repository
 
 * OPTION 1: Solve the GIM equations directly
 
-SCRIPT: inversion_direct.m
-PURPOSE: Estimate the fluxes using the direct solution (i.e., by solving a system of linear equations).
-CALLED BY: None.
+SCRIPT: inversion_direct.m <br>
+PURPOSE: Estimate the fluxes using the direct solution (i.e., by solving a system of linear equations). <br>
+CALLED BY: None. <br>
 CALLS: HQHR.m, uncert_direct.m
 
-SCRIPT: HQHR.m
-PURPOSE: Calculate (H*Q*H' + R). This matrix is often referred to with the Greek letter Psi.
-CALLED BY: inversion_direct.m
+SCRIPT: HQHR.m <br>
+PURPOSE: Calculate (H*Q*H' + R). This matrix is often referred to with the Greek letter Psi. <br>
+CALLED BY: inversion_direct.m <br>
 CALLS: None.
 
-SCRIPT: uncert_direct.m
+SCRIPT: uncert_direct.m <br>
 PURPOSE: Calculate the posterior uncertainties using direct calculations. This script will provide an exact answer
-	 and will not use any approximations to improve computational tractability.
-CALLED BY: inversion_direct.m
+	 and will not use any approximations to improve computational tractability. <br>
+CALLED BY: inversion_direct.m <br>
 CALLS: None.
 
 
 * OPTION 2: Minimum residual approach
 
-SCRIPT: inversion_dual_eq.m
+SCRIPT: inversion_dual_eq.m <br>
 PURPOSE: Launch the geostatistical inverse model using the minimum residual approach to estimating the fluxes.
-	 This script also provides an option for estimating the uncertainties using a reduced rank approach.
-CALLED BY: None.
+	 This script also provides an option for estimating the uncertainties using a reduced rank approach. <br>
+CALLED BY: None. <br>
 CALLS: Ax.m, weights_to_fluxes.m, uncert_est.m
 
-SCRIPT: Ax.m
-PURPOSE: Calculate the left-hand side of the GIM equations used in the minimum residual approach.
-CALLED BY: inversion_dual_eq.m
+SCRIPT: Ax.m <br>
+PURPOSE: Calculate the left-hand side of the GIM equations used in the minimum residual approach. <br>
+CALLED BY: inversion_dual_eq.m <br>
 CALLS: None.
 
-SCRIPT: weights_to_fluxes.m
-PURPOSE: Convert the weights estimated using the minimum residual approach into estimated fluxes.
-CALLED BY: inversion_dual_eq.m
+SCRIPT: weights_to_fluxes.m <br>
+PURPOSE: Convert the weights estimated using the minimum residual approach into estimated fluxes. <br>
+CALLED BY: inversion_dual_eq.m <br>
 CALLS: None.
 
-SCRIPT: uncert_est.m
+SCRIPT: uncert_est.m <br>
 PURPOSE: Estimate uncertainties using the reduced rank approach. This approach estimates approximate
-	 uncertainties. It is computationally tractable even for very large inverse problems.
-CALLED BY: inversion_dual_eq.m
+	 uncertainties. It is computationally tractable even for very large inverse problems. <br>
+CALLED BY: inversion_dual_eq.m <br>
 CALLS: QBABQ.m, randeigdecomp.m, eigfun.m
 
-SCRIPT: QBABQ.m
-PURPOSE: Calculate Q^(1/2)*B*A*B'*Q^(1/2)*B where B is some vector or matrix.
-CALLED BY: uncert_est.m
+SCRIPT: QBABQ.m <br>
+PURPOSE: Calculate Q^(1/2)*B*A*B'*Q^(1/2)*B where B is some vector or matrix. <br>
+CALLED BY: uncert_est.m <br>
 CALLS: None.
 
-SCRIPT: eigfun.m
-PURPOSE:  Function for computing Ax where A is the matrix we want eigenvectors/values for. 
-CALLED BY: uncert_est.m, randeigdecomp.m
+SCRIPT: eigfun.m <br>
+PURPOSE:  Function for computing Ax where A is the matrix we want eigenvectors/values for.  <br>
+CALLED BY: uncert_est.m, randeigdecomp.m <br>
 CALLS: None.
 
-SCRIPT: randeigdecomp.m
-PURPOSE: Compute the eigenvectors and eigenvalues of matrix A using a randomized approach.
-CALLED BY: uncert_est.m
+SCRIPT: randeigdecomp.m <br>
+PURPOSE: Compute the eigenvectors and eigenvalues of matrix A using a randomized approach. <br>
+CALLED BY: uncert_est.m <br>
 CALLS: eigfun.m
 
 
 * OPTION 3-4: L-BFGS and L-BFGS-B
 
-SCRIPT: inversion_LBFGS.m
+SCRIPT: inversion_LBFGS.m <br>
 PURPOSE: Estimate fluxes using a geostatistical inverse model, implemented using 
-	the L-BFGS algorithm and a variable transformation.
-CALLED BY: None.
+	the L-BFGS algorithm and a variable transformation. <br>
+CALLED BY: None. <br>
 CALLS: cost_gradient_fun_transform.m
 
-SCRIPT: cost_gradient_fun_transform.m
-PURPOSE: Calculate the cost function and gradient for the geostatistical inverse model.
-CALLED BY: inversion_LBFGS.m
+SCRIPT: cost_gradient_fun_transform.m <br>
+PURPOSE: Calculate the cost function and gradient for the geostatistical inverse model. <br>
+CALLED BY: inversion_LBFGS.m <br>
 CALLS: None.
 
-SCRIPT: cost_gradient_fun.m
-PURPOSE: Calculate the cost function and gradient function without a variable transformation.
+SCRIPT: cost_gradient_fun.m <br>
+PURPOSE: Calculate the cost function and gradient function without a variable transformation. <br>
 CALLED BY: This function is not called by any other script. Rather, it is an alternative to the script
-cost_gradient_fun_transform.m. Specifically, this script is useful for inverse problems with bounds (e.g., non-negativity). If one wants to enforce bounds on an inversion, use this script can be used in place of cost_gradient_fun_transform.m and use with L-BFGS-B (the bounded version of L-BFGS) instead of L-BFGS. 
+cost_gradient_fun_transform.m. Specifically, this script is useful for inverse problems with bounds (e.g., non-negativity). If one wants to enforce bounds on an inversion, use this script can be used in place of cost_gradient_fun_transform.m and use with L-BFGS-B (the bounded version of L-BFGS) instead of L-BFGS.  <br>
 CALLS: None.
 
 
@@ -143,7 +143,7 @@ CALLS: None.
 Scripts customized to run the included case study
 ----------------------------------------------------------
 
-Case study description:
+Case study description: <br>
 The case study here is identical to the first case study in Miller et al. (GMD). As a result, the fluxes estimated by these scripts can be compared directly with the first case study in Miller et al. (GMD). 
 
 In this case study, we estimate 6 weeks of CO2 fluxes (July through mid-August 2015) across North America using observations from the OCO-2 satellite. Specifically, these scripts will estimate CO2 fluxes at a 3-hourly time resolution and 1 degree by 1 degree spatial resolution across the US. The observations used in this case study are synthetic; they were generated using fluxes from NOAA's CarbonTracker product and using the Weather Research and Forecasting (WRF) model paired with the STILT model. We further added noise to the synthetic observations to give them qualities more similar to real-world observations.
@@ -163,24 +163,16 @@ Here is a summary of the different scripts that can be used to run this case stu
 Contact information
 ----------------------------------------------------------
 
-Scot Miller
+Scot Miller <br>
+Johns Hopkins University <br>
+Department of Environmental Health and Engineering <br>
+Email: smill191 [at] jhu.edu OR scot.m.miller [at] gmail.com <br>
+http://greenhousegaslab.org/ 
 
-Johns Hopkins University
-
-Department of Environmental Health and Engineering
-
-Email: smill191 [at] jhu.edu OR scot.m.miller [at] gmail.com
-
-http://greenhousegaslab.org/
-
-Arvind Saibaba
-
-North Carolina State University
-
-Depatment of Mathematics 
-
-Email: asaibab [at] ncsu.edu
-
+Arvind Saibaba <br>
+North Carolina State University <br>
+Depatment of Mathematics <br>
+Email: asaibab [at] ncsu.edu <br>
 https://asaibab.math.ncsu.edu/
 
 
