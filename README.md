@@ -1,6 +1,8 @@
 # geostatistical_inverse_modeling
 This repository contains Matlab code for conducting geostatistical inverse modeling using large atmospheric datasets.
 
+Authors: Scot Miller and Arvind Saibaba
+
 ----------------------------------------------------------
 Fair use
 ----------------------------------------------------------
