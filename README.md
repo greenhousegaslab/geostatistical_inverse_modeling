@@ -164,15 +164,23 @@ Contact information
 ----------------------------------------------------------
 
 Scot Miller
+
 Johns Hopkins University
+
 Department of Environmental Health and Engineering
+
 Email: smill191 [at] jhu.edu OR scot.m.miller [at] gmail.com
+
 http://greenhousegaslab.org/
 
 Arvind Saibaba
+
 North Carolina State University
+
 Depatment of Mathematics 
+
 Email: asaibab [at] ncsu.edu
+
 https://asaibab.math.ncsu.edu/
 
 
