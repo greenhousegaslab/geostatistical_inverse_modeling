@@ -2,7 +2,7 @@
 This repository contains Matlab code for conducting geostatistical inverse modeling using large atmospheric datasets.
 
 ----------------------------------------------------------
-FAIR USE
+Fair use
 ----------------------------------------------------------
 
 Please send us an email (scot.m.miller [at] gmail.com and asaibab [at] ncsu.edu) if you are thinking of using these scripts in your research. We would love to hear more about what you are working on and if we can help in any way. 
@@ -57,7 +57,7 @@ The scripts included here are written assuming the following format for the H ma
 
 
 ----------------------------------------------------------
-LIST OF GENERAL SCRIPTS
+List of scripts in the repository
 ----------------------------------------------------------
 
 * OPTION 1: Solve the GIM equations directly
@@ -140,7 +140,7 @@ CALLS: None.
 
 
 ----------------------------------------------------------
-SCRIPTS CUSTOMIZED TO RUN THE INCLUDED CASE STUDY
+Scripts customized to run the included case study
 ----------------------------------------------------------
 
 Case study description:
@@ -160,7 +160,7 @@ Here is a summary of the different scripts that can be used to run this case stu
 
 
 ----------------------------------------------------------
-CONTACT INFORMATION
+Contact information
 ----------------------------------------------------------
 
 Scot Miller
