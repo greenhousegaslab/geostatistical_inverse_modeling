@@ -374,26 +374,26 @@
 
         % Only keep fluxes from the month of July and remove fluxes from June
         % The flux estimate begins on 2015-6-21, and we only want to keep fluxes beginning on July 1, 2015
-	% (We included the last week of June in the inverse model primarily to ensure that there were not any edge effects
-	% at the beginning of the inverse modeling time preiod).
+        % (We included the last week of June in the inverse model primarily to ensure that there were not any edge effects
+        % at the beginning of the inverse modeling time preiod).
         % Select out the fluxes from July 1 onward
         sel  = (length(land_mask).*8.*10 + 1):length(shat);
         shat = shat(sel);
 
-	% Average the estimated fluxes across all time periods of the inverse model
+        % Average the estimated fluxes across all time periods of the inverse model
         shat = reshape(shat,m1,length(shat)./m1);
         shat = mean(shat,2);
 
-	% Use the land mask to put the flux estimate on a latitude-longitude grid
+        % Use the land mask to put the flux estimate on a latitude-longitude grid
         lat               = 10.5:79.5;
         lon               = -179.5:-10.5;
-	fluxes            = zeros(length(lat),length(lon));
-	fluxes(land_mask) = shat;	
+        fluxes            = zeros(length(lon),length(lat));
+        fluxes(land_mask) = shat;
 
         % Write the outputs to netcdf file
-        nccreate(outfile,'fluxes','Dimensions', {'nlat',size(fluxes,1),'nlon',size(fluxes,2)},'FillValue','disable','Datatype','double');
-        nccreate(outfile,'latitude','Dimensions', {'nlat',size(fluxes,1)},'Datatype','double');
-        nccreate(outfile,'longitude','Dimensions', {'nlon',size(fluxes,2)},'Datatype','double');
+        nccreate(outfile,'fluxes','Dimensions', {'nlon',size(fluxes,1),'nlat',size(fluxes,2)},'FillValue','disable','Datatype','double');
+        nccreate(outfile,'longitude','Dimensions', {'nlon',size(fluxes,1)},'Datatype','double');
+        nccreate(outfile,'latitude','Dimensions', {'nlat',size(fluxes,2)},'Datatype','double');
         ncwrite(outfile,'fluxes',fluxes);
         ncwrite(outfile,'latitude',lat');
         ncwrite(outfile,'longitude',lon);

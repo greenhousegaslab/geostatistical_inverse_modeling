@@ -1,6 +1,6 @@
 %-----------------------------------------------------------------------------------------------------------------------%
 % SCRIPT:  inversion_run												%
-% PURPOSE: Run a geostatistical inverse model (GIM), implemented with Lagrange multipliers 				%
+% PURPOSE: Run a geostatistical inverse model (GIM), implemented using the L-BFGS algorithm 				%
 % S. Miller, Jan. 8, 2016												%
 %															%
 %-----------------------------------------------------------------------------------------------------------------------%
@@ -461,13 +461,13 @@
         % Use the land mask to put the flux estimate on a latitude-longitude grid
         lat               = 10.5:79.5;
         lon               = -179.5:-10.5;
-        fluxes            = zeros(length(lat),length(lon));
+        fluxes            = zeros(length(lon),length(lat));
         fluxes(land_mask) = shat;
 
         % Write the outputs to netcdf file
-        nccreate(outfile,'fluxes','Dimensions', {'nlat',size(fluxes,1),'nlon',size(fluxes,2)},'FillValue','disable','Datatype','double');
-        nccreate(outfile,'latitude','Dimensions', {'nlat',size(fluxes,1)},'Datatype','double');
-        nccreate(outfile,'longitude','Dimensions', {'nlon',size(fluxes,2)},'Datatype','double');
+        nccreate(outfile,'fluxes','Dimensions', {'nlon',size(fluxes,1),'nlat',size(fluxes,2)},'FillValue','disable','Datatype','double');
+        nccreate(outfile,'longitude','Dimensions', {'nlon',size(fluxes,1)},'Datatype','double');
+        nccreate(outfile,'latitude','Dimensions', {'nlat',size(fluxes,2)},'Datatype','double');
         ncwrite(outfile,'fluxes',fluxes);
         ncwrite(outfile,'latitude',lat');
         ncwrite(outfile,'longitude',lon);

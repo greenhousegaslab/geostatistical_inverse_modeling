@@ -1,17 +1,10 @@
 %-----------------------------------------------------------------------------------------------------------------------%
-% SCRIPT:  inversion_dual_eq												%
-% PURPOSE: Launch a geostatistical inverse model (GIM).									%
-%	   This script will use the analytical equations in Michalak et al. (2004) to estimate the fluxes.		%
-%	   I.e., this script does not estimate the fluxes iteratively.							%
-% S. Miller, Jan. 8, 2016												%
-%															%
+% SCRIPT:  inversion_dual_eq                                                                                            %
+% PURPOSE: Launch a geostatistical inverse model (GIM).                                                                 %
+%          Estimate fluxes using a minimum residual approach to iterate toward the solution.                            %
+% S. Miller, Jan. 8, 2016                                                                                               %
+%                                                                                                                       %
 %-----------------------------------------------------------------------------------------------------------------------%
-
-%---------------------------%
-% Summary of this script    %
-%---------------------------%
-
-	% In this script, I implement an inverse model using the minimum residual method to iterate toward the solution.
 
 
 %---------------------------------%
@@ -24,15 +17,15 @@
         % scriptoption = 1: estimate fluxes with min residual method (no preconditioner)
         % scriptoption = 2: estimate uncertainties with reduced rank approach
 
-	% Set path where outputs should be saved
-	outpath = [ FILL IN HERE ];
+        % Set the path to all of the files for the case study
+        % The estimated fluxes will also be saved to this folder.
+        inpath = '/home-4/smill191@jhu.edu/work/smiller/GIM_test/case_study/';
+
+        % Set the name of the output file
+        outfile = strcat(inpath,'fluxes_minres.nc');
 
         % If scriptoption==1: Set the number of iterations for the minimum residual algorithm
 	maxit = 50;
-
-        % This script will save the estimated fluxes into the following file (csv file):
-        outfile = strcat(outpath,'fluxes_minresid',num2str(maxit),'.csv');
-        weightfile = strcat(outpath,'weights_',num2str(maxit),'.mat');
 
 	% If scriptoption==2: Set the maximum number of eigenvectors and values to use
 	eigmax = 100;
@@ -40,7 +33,14 @@
 	% If scriptoption==2: Create a file that contains the area of each grid box in the inverse model.
 	% The data should be in a column vector with length m. Set a zero in grid boxes that you do not want
 	% included in the uncertainty calculations.
-	selu = [ FILL IN HERE ];
+        % Read in a vector that contains grid box areas for the continental US (all other boxes are set to zero in the vector).
+        load(strcat(inpath,'areas_us.mat'));
+
+        % The estimated fluxes have units of micromol m-2 s-1.
+        % We'll want to convert the units from micromol m-2 s-1 to micromol m-2.
+        % In this case study, the inverse model will estimate fluxes for 3-hourly time periods,
+        % so we'll convert from (1/s) to (1/3 hours)
+        selu = sel.*60.*60.*3;
 
 
 %-----------------------------------%
@@ -72,8 +72,7 @@
         %       As a result of this setup, I usually define theta(4) to have units of days.
 
         % Set the covariance matrix parameters for the inversion
-        %! CHANGE THE PARAMETERS BELOW FOR YOUR PARTICULAR SETUP
-        theta = [ 16 0.128 189.7 105 ];
+        theta = [ 2.000 10.046 555.420 9.854 ];
 
         % Display the covariance matrix parameters on screen
         disp('Covariance matrix parameters');
@@ -96,7 +95,7 @@
 
         % If the H matrix is large, you may want to use the function sparse() to save memory (H is almost always a sparse matrix.).
 
-        Hpath = [ SET THE PATH TO THE H MATRIX HERE ];
+        Hpath = inpath;
 
 
 %---------------------------------%
@@ -110,7 +109,8 @@
         % We'll refer to this vector as "Z".
         % This vector has length (n x 1) where n are the number of observations
 
-        Z = [ READ IN OBSERVATIONS HERE ];
+        load(strcat(inpath,'Z.mat'));
+        n = length(Z);
 
 
 %----------------------------%
@@ -140,10 +140,20 @@
         %       that aren't captured by other columns of the X matrix.
         % OPTION 3: X could have a more complex format with land surface data, meteorological reanalysis, etc. Sharon Gourdji's 2008 and 2012 papers provide good examples.
 
-        % Create a vector of ones for the first column of the X matrix
-	% [ FILL IN CODE HERE ]
+        % In the case study here, X will have 8 columns. Each column corresponds to a different 3-hourly time period of the day (e.g., column 1 corresponds
+        % to fluxes from 0 to 3 AM UTC, and the second column corresponds to fluxes from 3 AM to 6 AM UTC).
+        X = [] ;
+        for i = 1:8
+                for j = 1:3222*41*8
+                        if rem((fix((j-1)/3222) + 1 - i), 8) == 0
+                        X(j, i) = 1 ;
+                        else
+                        X(j, i) = 0 ;
+                        end
+                end
+        end
 
-        % APPEND ANY OTHER DESIRED COLUMNS TO X HERE (e.g., an emissions inventory, land surface data, meteorology reanalysis, etc.)
+        X = sparse(X);
 
 
 %-------------------------%
@@ -167,7 +177,7 @@
         % This matrix is symmetric with zeros on the diagonals.
         % This matrix should typically has units of km. Whatever units you choose should match the units of theta(3)
 
-        deltamat = [ READ IN THE MATRIX HERE ];
+        load(strcat(inpath,'distmat.mat'));
 
 
         %------------%
@@ -201,12 +211,11 @@
         % **Create time distance matrix**   %
         %-----------------------------------%
 
-        ntimes = [ FILL IN HERE WITH THE NUMBER OF TIME PERIODS IN YOUR INVERSION ];
+        ntimes = 328;
         days = 1:ntimes;
         days = days';
         days = days * ones(1,length(days));
         days = abs(days - days');
-
 
         %------------%
         % Create D   %
@@ -298,12 +307,10 @@
         end;
         disp(toc);
 
-	end;
 
-
-%---------------------------------------------------------%
-% OPTION 1: Estimate the fluxes using a preconditioner    %
-%---------------------------------------------------------%
+%-----------------------------------%
+% OPTION 1: Estimate the fluxes     %
+%-----------------------------------%
 
 if scriptoption == 1;
 
@@ -312,27 +319,52 @@ if scriptoption == 1;
 	f1 = @(weights) Ax(R, X, HX, D, E, Hpath, weights);
         [weights1, flag,relres,iter,resvec] = minres(f1,b,tol,maxit);
 
-	
 	% Estimate the fluxes using the kriging weights
-	shat = weights_to_fluxes(weights1,Hpath,D,E,X,p);
+	shat = weights_to_fluxes(weights1,Hpath,D,E,X);
 
 
-	%------------------------------%
-	% Write the outputs to file    %
-	%------------------------------%
+%------------------------------%
+% Write the outputs to file    %
+%------------------------------%
 
-        disp('Writing outputs to file');
-        dlmwrite(outfile,full(shat),',');
-	save(weightfile,'weights1');
-	
-        disp('Outputs written to file');
-        disp(outfile);	
+        disp('Reformat outputs and write to file');
+
+        % Convert the estimated fluxes from a vector to a grid
+        % Read in the land mask
+        load(strcat(inpath,'land_mask.mat'));
+
+        % Only keep fluxes from the month of July and remove fluxes from June
+        % The flux estimate begins on 2015-6-21, and we only want to keep fluxes beginning on July 1, 2015
+        % (We included the last week of June in the inverse model primarily to ensure that there were not any edge effects
+        % at the beginning of the inverse modeling time preiod).
+        % Select out the fluxes from July 1 onward
+        sel  = (length(land_mask).*8.*10 + 1):length(shat);
+        shat = shat(sel);
+
+        % Average the estimated fluxes across all time periods of the inverse model
+        shat = reshape(shat,m1,length(shat)./m1);
+        shat = mean(shat,2);
+
+        % Use the land mask to put the flux estimate on a latitude-longitude grid
+        lat               = 10.5:79.5;
+        lon               = -179.5:-10.5;
+        fluxes            = zeros(length(lon),length(lat));
+        fluxes(land_mask) = shat;
+
+        % Write the outputs to netcdf file
+        nccreate(outfile,'fluxes','Dimensions', {'nlon',size(fluxes,1),'nlat',size(fluxes,2)},'FillValue','disable','Datatype','double');
+        nccreate(outfile,'longitude','Dimensions', {'nlon',size(fluxes,1)},'Datatype','double');
+        nccreate(outfile,'latitude','Dimensions', {'nlat',size(fluxes,2)},'Datatype','double');
+        ncwrite(outfile,'fluxes',fluxes);
+        ncwrite(outfile,'latitude',lat');
+        ncwrite(outfile,'longitude',lon);
+        ncwriteatt(outfile,'fluxes','unit','micromol m-2 s-1 (averaged over the case study time period)');
 
 	disp('Vector of normed residuals');
 	disp(resvec);
 
-
 end; % End of if statement
+
 
 %--------------------%
 % END OF SECTION     %
@@ -347,7 +379,7 @@ end; % End of if statement
 
         disp('Estimating uncertainties using reduced rank approach');
 
-        uncert_est(D, E, X, theta, n, eigmax, Hpath, outpath, selu);
+        uncert_est(D, E, X, theta, n, eigmax, Hpath, inpath, selu);
 
         end; % End of scriptoption if statement
 
