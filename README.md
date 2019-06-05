@@ -1,7 +1,17 @@
 # geostatistical_inverse_modeling
 This repository contains Matlab code for conducting geostatistical inverse modeling using large atmospheric datasets.
 
-Authors: Scot Miller and Arvind Saibaba
+Authors: Scot Miller and Arvind Saibaba. (Note: we want this code repository to be a collaborative effort, and the more authors/contributors, the better!)
+
+----------------------------------------------------------
+Introduction and overview
+----------------------------------------------------------
+
+This code repository contains several Matlab scripts for running a geostatistical inverse model (GIM). We chose Matlab because it is a scripting language (versus a compiled language) and because matrix algrebra operations are generally faster in Matlab than other scripting languages like R or Python. This repository includes several different algorithms for solving a GIM, and these algorithms should all converge on the same answer. The choice of algorithm will likely depend upon the size and characteristics of your inverse problem (see below for more detail).
+
+Most aspects of these scripts do not need to be customized or edited by the user. However, a few aspects of the scripts need to be customized for your particular inverse modeling setup, and those sections of the scripts are clearly marked. Most importantly, you will likely need to customize these scripts to match your specific atmospheric transport model. Most of the scripts here can be run with both particle-following or Lagrangian models (e.g., STILT for FLEXPART) and gridded or Eulerian models (e.g., GEOS-Chem or TM5; provided that a model adjoint is available). However, you will likely need to either modify the GIM code or modify your atmospheric model output to make the two compatible.
+
+We have included a case study that can be run out-of-the-box (described in more detail below). The purpose of this case study is to show how the code works and how it can be paired with different inverse modeling inputs.
 
 ----------------------------------------------------------
 Fair use
@@ -45,7 +55,7 @@ Use option (2) or (3) (or option 4 for a problem with bounds). Note that you wil
 A note on the H matrix
 ----------------------------------------------------------
 
-Some available atmospheric models will produce an explicit H matrix. These models include STILT (the Stochastic, Time-Inverted, Lagrangian Transport Model) and FLEXPART (the FLEXible PARTicle dispersion model). Other atmospheric models do not produce an explicit H matrix (e.g., TM-5 or GEOS-Chem). Instead, these models can pass a vector through the forward atmospheric model, and in some cases, pass a vector through the adjoint model. Specifically, these models will calculate the product H or H^T and a vector but will not formulate H or H^T explicitly.
+Some available atmospheric models will produce an explicit H matrix. These models include STILT (the Stochastic, Time-Inverted, Lagrangian Transport Model) and FLEXPART (the FLEXible PARTicle dispersion model). Other atmospheric models do not produce an explicit H matrix (e.g., TM5 or GEOS-Chem). Instead, these models can pass a vector through the forward atmospheric model, and in some cases, pass a vector through the adjoint model. Specifically, these models will calculate the product H or H^T and a vector but will not formulate H or H^T explicitly.
 
 You will need to modify the scripts here depending upon which type of model that you use. Most of these scripts can be used with either type of model.
 
