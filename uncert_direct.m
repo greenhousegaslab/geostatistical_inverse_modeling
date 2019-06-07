@@ -59,9 +59,6 @@ function [ uncert ] = uncert_analytical(psi,HX,D,E,X,selu,Hpath);
 % Create unit conversion vectors   %
 %----------------------------------%
 
-        % Convert time from (1/s) to (1/time period) [ in this case, 3 hours ]
-        selu = selu.*60.*60.*3;
-
         % Repeat the unit conversion vector based upon the number of time periods in the inverse model
         agvec = repmat(selu,ntimes,1);
 
