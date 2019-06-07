@@ -64,7 +64,7 @@ The scripts here have been written for a model that produces an explicit H matri
 The scripts included here are written assuming the following format for the H matrix:
 - An explicit H matrix is available.
 - The H matrix has been broken into smaller pieces or strips, and each strip has been written to a different file. Each strip should have n rows (corresponding to the total number of observations in the inverse model), and each strip should have columns corresponding to a single time period of fluxes to be estimated. 
-- These H "strips" are saved in Matlab files (with the ".mat" extension). The files should have the following naming convention: "H_1.mat" where 1 indicates the time period that this particular file corresponds to. In this case, "H_1.mat" would refer to the first time period and "H_2.mat" would correspond to the second time period of the inverse model, etc. For example, if one were estimating 3-hourly CO2 fluxes, H_1.mat would correspond to the first three-hourly time period, and H_2.mat to the second three-hourly time period.
+- These H "strips" are saved in Matlab files (with the ".mat" extension). The files should have the following naming convention: "H_1.mat" where 1 indicates the time period that this particular file corresponds to. In this case, "H_1.mat" would refer to the first time period and "H_2.mat" would correspond to the second time period of the inverse model, etc. For example, if one were estimating 3-hourly CO<sub>2</sub> fluxes, H_1.mat would correspond to the first three-hourly time period, and H_2.mat to the second three-hourly time period.
 - Again, this setup can be modified for atmospheric models that do not produce an explicit H matrix or for inverse problems where the H matrix is stored in a different format. I have set up the scripts this way solely out of convenience; the setup described above lends itself to the case study included here using the STILT model. I have flagged all of the sections of code that would need to be modified to run the GIM with different types of atmospheric models that do not fit the H matrix format described above. Look for sections of code denoted with the comment "%! Note: Edit this section to match the actual format of H in your problem."
 
 
@@ -155,12 +155,11 @@ CALLS: None.
 Scripts customized to run the included case study
 ----------------------------------------------------------
 
-Case study description: <br>
-The case study here is identical to the first case study in Miller et al. (GMD). As a result, the fluxes estimated by these scripts can be compared directly with the first case study in Miller et al. (GMD). 
+The case study here is identical to the first case study in Miller et al. (2019). As a result, the fluxes estimated by these scripts can be compared directly with the first case study in Miller et al. (2019). All of the input files for the case study are available on Zenodo at www.dx.doi.org/10.5281/zenodo.3241467.
 
-In this case study, we estimate 6 weeks of CO2 fluxes (July through mid-August 2015) across North America using observations from the OCO-2 satellite. Specifically, these scripts will estimate CO2 fluxes at a 3-hourly time resolution and 1 degree by 1 degree spatial resolution across the US. The observations used in this case study are synthetic; they were generated using fluxes from NOAA's CarbonTracker product and using the Weather Research and Forecasting (WRF) model paired with the STILT model. We further added noise to the synthetic observations to give them qualities more similar to real-world observations.
+In this case study, we estimate 6 weeks of CO<sub>2</sub> fluxes (July through mid-August 2015) across North America using observations from the OCO-2 satellite. Specifically, these scripts will estimate CO<sub>2</sub> fluxes at a 3-hourly time resolution and 1 degree by 1 degree spatial resolution across the US. The observations used in this case study are synthetic; they were generated using fluxes from NOAA's CarbonTracker product and using the Weather Research and Forecasting (WRF) model paired with the Stochastic Time-Inverted Lagrangian Transport (STILT) model. We further added noise to the synthetic observations to give them qualities more similar to real-world observations.
 
-In this particular case study, we generated an explicit H matrix using WRF-STILT model output from Arlyn Andrews and Mike Trudeau (NOAA). 
+We use an explicit H matrix for this case study; these inputs were generated using the WRF-STILT model as part of NOAA's CarbonTracker-Lagrange project (https://www.esrl.noaa.gov/gmd/ccgg/carbontracker-lagrange/). 
 
 Here is a summary of the different scripts that can be used to run this case study. To run each of these scripts, one only needs to provide a path to the model and data input files; all of the other inputs should be customized to the case study. These scripts will write the estimated fluxes (averaged over the entire 6-week time period) as a netcdf file. This file should contain all of the information needed to plot the estimated fluxes. 
  
@@ -170,6 +169,11 @@ Here is a summary of the different scripts that can be used to run this case stu
 
 - casestudy_inversion_LBFGS.m: Estimate fluxes and uncertainties using the L-BFGS algorithm.
 
+----------------------------------------------------------
+References
+----------------------------------------------------------
+
+Miller, Scot M., Saibaba, Arvind K., Trudeau, Michael E., and Andrews, Arlyn E. "Geostatistical inverse modeling with very large datasets: an example from the OCO-2 satellite." Submitted to Geoscientific Model Development, 2019.
 
 ----------------------------------------------------------
 Contact information
