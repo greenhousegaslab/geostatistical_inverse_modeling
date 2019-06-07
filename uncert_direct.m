@@ -20,7 +20,7 @@
 % Begin function   %
 %------------------%
 
-function [ uncert ] = uncert_analytical(psi,HX,D,E,X,selu,Hpath);
+function [ uncert ] = uncert_direct(psi,HX,D,E,X,selu,Hpath);
 
 	% FUNCTION INPUTS:
 	% psi:		HQH' + R
