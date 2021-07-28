@@ -133,7 +133,6 @@ disp('Calculating the gradient');
 
 	% In this section of the code, we want to do the following matrix/vector calculations:
 	% L1 = H' * (R \ (Z - Hs));
-	% To do these calculations, we'll need to use the GEOS-Chem adjoint
 
 	tic;
 	temp = (R \ (Z - Hs));
