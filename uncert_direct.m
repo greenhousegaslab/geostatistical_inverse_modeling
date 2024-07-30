@@ -2,6 +2,7 @@
 % FUNCTION: uncert_direct.m								%
 % PURPOSE:  Calculate the uncertainties using direct calculations.			%
 % S. Miller, Nov. 28, 2018								%
+%	Updated July 24, 2024								%
 %											%
 %---------------------------------------------------------------------------------------%
 
@@ -20,15 +21,14 @@
 % Begin function   %
 %------------------%
 
-function [ uncert ] = uncert_direct(psi,HX,D,E,X,selu,Hpath);
+function [ uncert ] = uncert_direct(psi,HX,X,Q,H,selu);
 
 	% FUNCTION INPUTS:
 	% psi:		HQH' + R
 	% HX:		The sensitivity matrix (H) multiplied by the auxiliary variables (X)
-	% D:		Matrix that describes temporal covariance in the fluxes.
-	%		(Note that D should be multiplied by the variance in Q.)
-	% E:		Matrix that describes spatial covariance in the fluxes.
 	% X:		Matrix of auxiliary variables.
+	% Q:		The Q covariance matrix. This object should be formatted using the kronMat class.
+	% H: 		An object of class "matvecH" that points to the H matrix files.
 	% selu: 	This vector contains the areas of each model grid box.
 	%		The elements of this vector should be set to 0 for all model grid boxes that 
 	%		should be excluded from the uncertainty calculations.
@@ -50,9 +50,8 @@ function [ uncert ] = uncert_direct(psi,HX,D,E,X,selu,Hpath);
 
         p   = size(X,2);
         n   = size(HX,1);
-        m1  = size(E,1);
-        m   = size(E,1).*size(D,1);
-	ntimes = size(D,1);
+        m1  = size(selu,1);
+        ntimes = size(Q,1)./m1;
 
 
 %----------------------------------%
@@ -83,18 +82,7 @@ function [ uncert ] = uncert_direct(psi,HX,D,E,X,selu,Hpath);
 %---------------%
 
         % Multiply Q by aggregation vector
-        Qag = [];
-
-        for j = 1:ntimes;
-        A1 = zeros(m1,1);
-                for i = 1:ntimes;
-                sel = (m1.*(i-1)+1):(i.*m1);
-                A1 = A1 + agvec(sel) .* D(j,i);
-                end; % End of i loop
-        temp = E * A1;
-        Qag = [Qag; temp];
-        end; % End of i loop
-        clear A1 temp;
+	Qag = Q * agvec; 
 
         % Finish calculating (agvec)' * Q * agvec
         V1 = agvec' * Qag;
@@ -104,46 +92,21 @@ function [ uncert ] = uncert_direct(psi,HX,D,E,X,selu,Hpath);
 % Calculate V2   %
 %----------------%
 
-        %! Note: Edit this section to match the actual format of H in your problem.
-
         % H*Qag
-        HQx = zeros(n,1);
-        for j = 1:ntimes;
-        load(strcat(Hpath,'H_',num2str(j),'.mat'));
-        sel = (m1.*(j-1)+1):(j.*m1);
-        HQx = HQx + H*Qag(sel,:);
-        clear H;
-        end;
-        clear Qx1;
+	HQx = H * Qag;
 
         % Multiply by P
         PHQx = P*HQx;
         clear HQx;
 
         % Multiply by H'
-        HPHQx = [];
-        for j = 1:ntimes;
-	load(strcat(Hpath,'H_',num2str(j),'.mat'));
-	HPHQx = [ HPHQx; H'* PHQx ];
-        end;
-        clear PHQx;
+	HPHQx = H' * PHQx;
 
-        % Mulitiply by Q' (Same as multiplying by Q)
-        Qag = [];
-
-        for j = 1:ntimes;
-        A1 = zeros(m1,1);
-                for i = 1:ntimes;
-                sel = (m1.*(i-1)+1):(i.*m1);
-                A1 = A1 + HPHQx(sel,:) .* D(j,i);
-                end; % End of i loop
-        temp = E * A1;
-        Qag = [Qag; temp];
-        end; % End of i loop
-        clear A1 temp;
+        % Mulitiply by Q' (Same as multiplying by Q since Q and Q' are symmetric)
+	QHPHQx = Q*HPHQx;
 
         % Multiply by agvec'
-        V2 = agvec' * Qag;
+        V2 = agvec' * QHPHQx;
 
 
 %----------------%
@@ -171,28 +134,8 @@ function [ uncert ] = uncert_direct(psi,HX,D,E,X,selu,Hpath);
 
         % X*A'*HQ   (mxp)*(pxn)*(nxm)
 
-        % Multiply Q*agvec
-        Qag = [];
-
-        for j = 1:ntimes;
-        A1 = zeros(m1,1);
-                for i = 1:ntimes;
-                sel = (m1.*(i-1)+1):(i.*m1);
-                A1 = A1 + agvec(sel) .* D(j,i);
-                end; % End of i loop
-        temp = E * A1;
-        Qag = [Qag; temp];
-        end; % End of i loop
-        clear A1 temp;
-
-	% Multiply by H
-        HQx = zeros(n,1);
-        for j = 1:ntimes;
-        load(strcat(Hpath,'H_',num2str(j),'.mat'));
-	HQx = HQx + H*Qag(sel,:);
-        clear H;
-        end;
-        clear Qx1;
+	% Multiply H by (Q*agvec)
+	HQx = H * Qag; 
 
         % Multiply by X*A'
         XAQag = X*(A'*HQx);
@@ -211,29 +154,13 @@ function [ uncert ] = uncert_direct(psi,HX,D,E,X,selu,Hpath);
         AXa = A * (X' * agvec);
 
         % Multiply by H'
-        HAXa = [];
-        for j = 1:ntimes;
-        load(strcat(Hpath,'H_',num2str(j),'.mat'));
-	HAXa = [ HAXa; H'* AXa ];
-        end;
-        clear AXa;
+	HAXa = H' * AXa;
 
         % Multiply by Q
-        Qag = [];
-
-        for j = 1:ntimes;
-        A1 = zeros(m1,1);
-                for i = 1:ntimes;
-                sel = (m1.*(i-1)+1):(i.*m1);
-                A1 = A1 + HAXa(sel,:) .* D(j,i);
-                end; % End of i loop
-        temp = E * A1;
-        Qag = [Qag; temp];
-        end; % End of i loop
-        clear A1 temp;
+	QHAXa = Q * HAXa;
 
         % Multiply by agvec' 
-        V5 = agvec' * Qag;
+        V5 = agvec' * QHAXa;
 
 
 %----------------------------------%

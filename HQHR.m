@@ -41,7 +41,6 @@ function [ psi ] = HQHR(R, D, E, Hpath);
 %---------------------%
 
 	disp('Calculate HQH');
-        %! Note: Edit this section to match the actual format of H in your problem.
 
 	psi = sparse(n,n);
 
