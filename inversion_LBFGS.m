@@ -284,10 +284,10 @@
 
 
 %------------------------------------------------------%
-% Create the initial guess for the L-BFGS-B algorithm  %
+% Create the initial guess for the L-BFGS algorithm    %
 %------------------------------------------------------%
 
-        disp('Create an initial guess for the L-BFGS-B algorithm');
+        disp('Create an initial guess for the L-BFGS algorithm');
 
         % No need to edit this section
 
@@ -354,7 +354,7 @@
 
 
 %-----------------------------------------%
-% Set options for the L-BFGS-B algorithm  %
+% Set options for the L-BFGS algorithm  %
 %-----------------------------------------%
 
         options = struct('HessUpdate','lbfgs','GradObj','on','Display','iter','MaxIter',maxit,'GradConstr',false);
@@ -364,7 +364,7 @@
 % Run the algorithm     %
 %-----------------------%
 
-        disp('Run the L-BFGS-B algorithm');
+        disp('Run the L-BFGS algorithm');
 
         [shat,costfun,exitflag,gradient] = fminlbfgs(f1,shat0,options);
 
