@@ -7,15 +7,14 @@
 %-----------------------------------------------------------------------------------------------%
 
 
-function [ A ] = Ax(R, X, HX, D, E, Hpath, weights);
+function [ A ] = Ax(R, X, HX, Q, H, weights);
 
 	% FUNCTION INPUTS:
 	% R:		Model-data mismatch covariance matrix.
 	% X:		Matrix of auxiliary variables.
 	% HX:		Auxiliary variables passed through the forward model.
-	% D:		Matrix describing temporal covariances in the fluxes.
-	% E:		Matrix describing spatial covariances in the fluxes.
-	% Hpath:	Path to the H matrix strips.	
+	% Q:		The Q covariance matrix (formatted as class kronMat)
+	% H:		Class matvecH that points to the H matrices.
 	% weights:	Current estimate for the kriging weights.	
 
 	% FUNCTION OUTPUTS:
@@ -32,9 +31,7 @@ function [ A ] = Ax(R, X, HX, D, E, Hpath, weights);
 
         % Define the sizes of the different matrices
         p   = size(HX,2);
-        n   = size(HX,1);
-        m1  = size(E,1);
-	ntimes = size(D,1);	
+        n   = size(HX,1);	
 
         xi   = weights(1:(size(weights,1)-p));
         betas = weights((size(weights,1)-p+1):size(weights,1));
@@ -46,47 +43,18 @@ function [ A ] = Ax(R, X, HX, D, E, Hpath, weights);
 
         %! Note: Edit this section to match the actual format of H in your problem.
 
-        % Calculate H * xi
-        % disp('Calculate H^T * xi');
-        % tic;
-        Hxi = [];
-        for j = 1:size(D,1);
-        H = load(strcat(Hpath,'H_',num2str(j),'.mat'));
-        H = H.H;
-	Hxi = [Hxi; H'*xi];
-        end;
-        % disp(toc);
+        % Calculate H^T * xi
+	Hxi = H' * xi;
 
         % Calculate Q * H^T * xi
         % NOTE: This step is the slowest step for a year-long inverse model.
 	% disp('Calculate Q * H^T * xi');
-        % tic;
-        QHxi = [];
-
-        for j = 1:ntimes;
-        A1 = zeros(m1,1);
-                for i = 1:ntimes;
-                sel = (m1.*(i-1)+1):(i.*m1);
-                A1 = A1 + Hxi(sel,1) .* D(j,i);
-                end; % End of i loop
-        temp = E * A1;
-        QHxi = [QHxi; temp];
-        end; % End of j loop
-        A1 = []; temp =[];
-        % disp(toc);
+	QHxi = Q * Hxi;
 
 	% Calculate H * Q * H' * xi
         % disp('Calculate HQHxi');
         % tic;
-        HQHxi = zeros(n,1);
-        for j = 1:ntimes;
-        H = load(strcat(Hpath,'H_',num2str(j),'.mat'));
-        H = H.H;
-	sel   = (m1.*(j-1)+1):(j.*m1);
-        HQHxi = HQHxi + H*QHxi(sel,:);
-        H = [];
-        end;
-        % disp(toc);
+	HQHxi = H * QHxi;
 
 	% Calculate R*xi
 	% disp('Assemble the first line of Ax');

@@ -250,6 +250,14 @@
         Dinv = inv(D);
 
 
+%----------------------------------------------%
+% Create Q and Q^(-1) using the kronMat class  %
+%----------------------------------------------%
+
+	Q    = kronMat(D,E);
+	Qinv = kronMat(Dinv,Einv);
+
+
 %------------------------%
 % Create the R matrix    %
 %------------------------%
@@ -295,17 +303,9 @@
 	% Calculate HX   %
 	%----------------%
 
-        %! Note: Edit this section to match the actual format of H in your problem.
-
         disp('Calculate HX');
-        tic;
-        HX = zeros(n,p);
-        for j = 1:ntimes;
-        load(strcat(Hpath,'H_',num2str(j),'.mat'));
-        sel = (m1.*(j-1)+1):(j.*m1);
-        HX = HX + H*X(sel,:);
-        end;
-        disp(toc);
+	H = matvecH(ntimes,Hpath);
+	HX = H*X;
 
 
 %-----------------------------------%
@@ -314,13 +314,14 @@
 
 if scriptoption == 1;
 
-	disp('Estimate weights using minimum residual method');
-	tol = 1e-30; % Tolerance
-	f1 = @(weights) Ax(R, X, HX, D, E, Hpath, weights);
+        disp('Estimate weights using minimum residual method');
+        tol = 1e-30; % Tolerance
+        f1 = @(weights) Ax(R, X, HX, Q, H, weights);
         [weights1, flag,relres,iter,resvec] = minres(f1,b,tol,maxit);
 
-	% Estimate the fluxes using the kriging weights
-	shat = weights_to_fluxes(weights1,Hpath,D,E,X);
+
+        % Estimate the fluxes using the kriging weights
+        shat = weights_to_fluxes(weights1,H,Q,X);
 
 
 %------------------------------%
@@ -379,7 +380,7 @@ end; % End of if statement
 
         disp('Estimating uncertainties using reduced rank approach');
 
-        uncert_est(D, E, X, theta, n, eigmax, Hpath, inpath, selu);
+        uncert_est(D, E, X, theta, n, eigmax, H, outpath, selu);
 
         end; % End of scriptoption if statement
 

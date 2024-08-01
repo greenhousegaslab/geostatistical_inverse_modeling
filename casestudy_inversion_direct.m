@@ -269,6 +269,13 @@
         D = (sigmaQ*sigmaQ') .* D;
 
 
+%--------------------------------%
+% Create Q using D and E         %
+%--------------------------------%
+
+	Q = kronMat(D,E);
+
+
 %------------------------%
 % Create the R matrix    %
 %------------------------%
@@ -294,16 +301,9 @@
 % Pass the columns of X through the forward model   %
 %---------------------------------------------------%
 
-        %! Note: Edit this section to match the actual format of H in your problem.
-
         disp('Calculate HX');
-        HX = zeros(n,p);
-        for j = 1:ntimes;
-        load(strcat(Hpath,'H_',num2str(j),'.mat'));
-        sel = (m1.*(j-1)+1):(j.*m1);
-        HX = HX + H*X(sel,:);
-        clear H;
-        end;
+	H = matvecH(ntimes,Hpath);
+	HX = H*X;
 
 
 %---------------------------%
@@ -334,28 +334,11 @@
 	betas = weights((size(weights,1)-p+1):size(weights,1));;	
 
 	% Calculate H * eta
-        %! Note: Edit this section to match the actual format of H in your problem.
-	% Heta = H'*eta;
-        Heta = [];
-        for j = 1:size(D,1);
-        load(strcat(Hpath,'H_',num2str(j),'.mat'));
-        Heta = [Heta; H'*eta];
-        end;
+	Heta = H' * eta;
 
 	% Calculate Q * H^T * eta
 	disp('Calculate Q * H^T * eta');
-	QHeta = [];
-	
-	for j = 1:ntimes;
-	A1 = zeros(m1,1);
-		for i = 1:size(D,1);
-		sel = (m1.*(i-1)+1):(i.*m1);
-		A1 = A1 + Heta(sel,1) .* D(j,i);	
-		end; % End of i loop
-	temp = E * A1;
-	QHeta = [QHeta; temp];
-	end; % End of j loop
-	clear A1 temp;
+	QHeta = Q * Heta; 
 
 	% Create the estimate of the fluxes
 	disp('Estimate the fluxes');
@@ -407,7 +390,7 @@
 
 	if estuncert == 1;
 
-        uncert  = uncert_direct(psi,HX,D,E,X,selu,Hpath);
+        uncert  = uncert_direct(psi,HX,X,Q,H,selu);
 
 	end; % End of estuncert if statement
 

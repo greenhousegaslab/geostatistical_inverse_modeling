@@ -269,20 +269,15 @@
         %! Note: Edit this section to match the actual format of H in your problem.
 
         disp('Calculate HX');
-        HX = zeros(n,p);
-        for j = 1:ntimes;
-        load(strcat(Hpath,'H_',num2str(j),'.mat'));
-        sel = (m1.*(j-1)+1):(j.*m1);
-        HX = HX + H*X(sel,:);
-        clear H;
-        end;
+        H = matvecH(ntimes,Hpath);
+	HX = H*X;
 
 
 %------------------------------------------------------%
-% Create the initial guess for the L-BFGS-B algorithm  %
+% Create the initial guess for the L-BFGS algorithm    %
 %------------------------------------------------------%
 
-        disp('Create an initial guess for the L-BFGS-B algorithm');
+        disp('Create an initial guess for the L-BFGS algorithm');
 
         % No need to edit this section
 
@@ -296,33 +291,11 @@
         shat0 = X * beta1;
 
 
-	%----------------------------------------%
-	% Take the symmetric sq root of D and E  %
-	%----------------------------------------%
-
-	CD = sqrtm(D);
-	CE = sqrtm(E);
-	invCD = inv(CD);
-	invCE = inv(CE);
-
 	%-------------------------------------------%
 	% Transform shat0: shat0* = Q^(-1/2)*shat0  %
 	%-------------------------------------------%
 
-	stemp = [];
- 
-         for j = 1:ntimes;
-         Qx1   = zeros(m1,1);
-                 for i = 1:ntimes;
-                 sel = (m1.*(i-1)+1):(i.*m1);
-                Qx1 = Qx1 + shat0(sel) .* invCD(j,i);
-                end; % End of i loop
-        temp =  invCE * Qx1;
-        stemp   =  [stemp; temp];
-        end; % End of i loop
-        clear Qx1 temp;
-
-	shat0 = stemp;
+	shat0 = Qsqrtinv * shat0;
 
 
 %-------------------------------------------------%
@@ -336,22 +309,7 @@
 	disp('Pre-calculate matrix products where possible');
 	
 	% B = inv(Q) * X
-	B = [];
-	p = size(X,2);
-	m1  = size(E,1);
-	ntimes = size(D,1);
-	m = ntimes .* m1;
-
-	for j = 1:ntimes;
-	B1 = zeros(m1,size(X,2));
-		for i = 1:size(Dinv,1);
-		sel = (m1.*(i-1)+1):(i.*m1);
-		B1 = B1 + X(sel,:) .* Dinv(j,i);
-		end; % End of i loop
-	temp = Einv * B1;
-	B = [B; temp];
-	end; % End of j loop
-	clear B1 temp;
+	B = Qinv * X;
 
 	% To save time, one can save out the object B and read it in for future 
 	% inverse modeling simulations.
@@ -376,27 +334,17 @@
         % Calculate inv(sqrtm(Q)) * X   %
         %-------------------------------%
 
-        A = [];
+	A = Qsqrtinv * X;
 
-        for j = 1:ntimes;
-        A1 = zeros(m1,size(X,2));
-                for i = 1:ntimes;
-                sel = (m1.*(i-1)+1):(i.*m1);
-                A1 = A1 + X(sel,:) .* invCD(j,i);
-                end; % End of i loop
-        temp = invCE * A1;
-        A = [A; temp];
-        end; % End of i loop
-        clear A1 temp;
 
-	f1 = @(shat) cost_gradient_fun_transform(Z, R, X, A, B, Dinv, Einv, CD, CE, Hpath, shat);
+	f1 = @(shat) cost_gradient_fun_transform(Z, R, X, A, B, Qinv, Qsqrt, H, shat);
 
         % Create an empty flux estimate
         shat = [];
 
 
 %-----------------------------------------%
-% Set options for the L-BFGS-B algorithm  %
+% Set options for the L-BFGS algorithm    %
 %-----------------------------------------%
 
         options = struct('HessUpdate','lbfgs','GradObj','on','Display','iter','MaxIter',maxit,'GradConstr',false);
@@ -406,7 +354,7 @@
 % Run the algorithm     %
 %-----------------------%
 
-        disp('Run the L-BFGS-B algorithm');
+        disp('Run the L-BFGS algorithm');
 
         [shat,costfun,exitflag,gradient] = fminlbfgs(f1,shat0,options);
 
@@ -415,21 +363,7 @@
 % Transform fluxes back to normal space      %
 %--------------------------------------------%
 
-	stemp = [];
- 
- 	ntimes = size(D,1);
-         for j = 1:ntimes;
-         Qx1   = zeros(m1,1);
-                 for i = 1:ntimes;
-                 sel = (m1.*(i-1)+1):(i.*m1);
-                Qx1 = Qx1 + shat(sel) .* CD(j,i);
-                end; % End of i loop
-        temp =  CE * Qx1;
-        stemp   =  [stemp; temp];
-        end; % End of i loop
-        clear Qx1 temp;
-
-	shat = stemp;
+	shat = Qsqrt * shat;
 
         % Print out time information
         disp('Time at the end of the L-BFGS algorithm:');

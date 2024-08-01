@@ -14,15 +14,14 @@
 	%-------------%
 		
 	
-function [ f,g ] = cost_gradient_fun(Z, R, X, B, Dinv, Einv, Hpath, shat);
+function [ f,g ] = cost_gradient_fun(Z, R, X, B, Qinv, H, shat);
 
 	% FUNCTION INPUTS:
 	% Z		Observation vector
 	% H		Footprints
 	% R		Model-data mismatch matrix
 	% X		Design matrix
-	% Dinv		Inverse of the temporal correlation matrix (D)
-	% Einv		Inverse of the spatial correlation matrix (E)
+	% Qinv		Inverse of Q. Formulated as a kronMat object.
 
 	% FUNCTION OUTPUTS:
 	% f: 		Value of the cost function for a given guess for the fluxes (shat) 
@@ -55,13 +54,7 @@ disp('Calculating the cost function');
         %! Note: Edit this section to match the actual format of H in your problem.
 
         % disp('Calculate Hs');
-        Hs = zeros(n,1);
-        for j = 1:size(Dinv,1);
-        load(strcat(Hpath,'H_',num2str(j),'.mat'));
-        sel = (m1.*(j-1)+1):(j.*m1);
-        Hs = Hs + H*shat(sel,:);
-        clear H;
-        end;
+	Hs = H * shat;
 
 
 %-------------------------------------------%
@@ -87,18 +80,7 @@ disp('Calculating the cost function');
 	%---------------%
 	
 	% A = inv(Q) * shat
-	A = [];
-	
-	for j = 1:size(Dinv,1);
-	A1 = zeros(m1,1);
-		for i = 1:size(Dinv,1);
-		sel = (m1.*(i-1)+1):(i.*m1);
-		A1 = A1 + shat(sel) .* Dinv(j,i);	
-		end; % End of i loop
-	temp = Einv * A1;
-	A = [A; temp];
-	end; % End of i loop
-	clear A1 temp;
+	A = Qinv * shat;
 
 	
 	%------------------------------%
@@ -151,11 +133,7 @@ disp('Calculating the gradient');
 
 	% Calculate  L1 = H' * (R \ (Z - Hs))] 
         % disp('Calculate H * (R \ (Z - Hs))');
-        L1 = [];
-        for j = 1:size(Dinv,1);
-        load(strcat(Hpath,'H_',num2str(j),'.mat'));
-        L1 = [L1; H'*temp];
-        end;
+	L1 = H' * temp;
 
 
 %------------------------------------------------%
@@ -170,18 +148,7 @@ disp('Calculating the gradient');
 	%---------------%
 	
 	% A = inv(Q) * shat
-	A = [];
-	
-	for j = 1:size(Dinv,1);
-	A1 = zeros(m1,1);
-		for i = 1:size(Dinv,1);
-		sel = (m1.*(i-1)+1):(i.*m1);
-		A1 = A1 + shat(sel) .* Dinv(j,i);	
-		end; % End of i loop
-	temp = Einv * A1;
-	A = [A; temp];
-	end; % End of i loop
-	clear A1 temp;
+	A = Qinv * shat;
 	
 	
 	%------------------------------%

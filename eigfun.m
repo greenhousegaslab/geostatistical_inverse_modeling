@@ -2,6 +2,7 @@
 % FUNCTION: eigfun.m										%
 % PURPOSE: Function for computing Ax where A is the matrix we want eigenvectors/values for.	%
 % S. Miller, Nov. 15, 2018									%
+%	Updated July 24, 2024									%
 %												%
 %-----------------------------------------------------------------------------------------------%
 
@@ -25,63 +26,30 @@
 % Begin function   %
 %------------------%
 
-function [ Ax ] = eigfun(CD, CE, theta, n, Hpath, x1);
+function [ Ax ] = eigfun(Qchol, theta, n, H, x1);
 
 	% FUNCTION INPUTS:
+	% Qchol:	Cholesky decomposition of Q (formatted as a kronMat object)
 	% theta: 	First value of this vector should be sigma_R
 	% n: 		Number of observations
-	% CD: 		Cholesky decomposition of the D matrix
-	% CE: 		Cholesky decomposition of the E matrix
-	% Hpath: 	Path to the footprint matrices
+	% H: 		H as a matvecH object
 	% x1: 		Unknown vector that is provided by the "eigs" function in Matlab.
 	%     		or by the random eigenvector decomposition function (randeigdecomp.m)
 
 disp('Computing matrix-vector products for eigenvector/value calculation');
-tic;
-
-%--------------------------------%
-% Define the problem dimensions  %
-%--------------------------------%
-
-	ntimes = size(CD,1);
-	m = size(CD,1).*size(CE,1);
-	m1 = m ./ ntimes; % Divide m by the total number of time periods in the inversion
-
 
 %--------------------%
 % Compute chol(Q)*x  %
 %--------------------%
 
-	% I've included a transpose here.
-	CDt = CD';
-	Qx = [];
-
-	for j = 1:ntimes;
-	Qx1   = zeros(m1,1);
-		for i = 1:ntimes;
-		sel = (m1.*(i-1)+1):(i.*m1);
-		Qx1 = Qx1 + x1(sel,:) .* CDt(j,i);
-		end; % End of i loop
-	temp = 	CE' * Qx1;
-	Qx   =  [Qx; temp];
-	end; % End of i loop
-	clear Qx1 temp;
+	Qx = Qchol * x1;
 
 
 %-----------------%
 % Multiply by H   %
 %-----------------%
 
-        %! Note: Edit this section to match the actual format of H in your problem.
-
-        HQx = zeros(n,1);
-        for j = 1:ntimes;
-        load(strcat(Hpath,'H_',num2str(j),'.mat'));
-        sel = (m1.*(j-1)+1):(j.*m1);
-        HQx = HQx + H*Qx(sel,:);
-        clear H;
-        end;
-	clear Qx1;
+        HQx = H * Qx;
 
 
 %--------------------------%
@@ -98,32 +66,14 @@ tic;
 
         %! Note: Edit this section to match the actual format of H in your problem.
 
-	HRHQx = [];
-	for j = 1:ntimes;
-	load(strcat(Hpath,'H_',num2str(j),'.mat'));
-	HRHQx = [ HRHQx; H'* RHQx ];
-	end;
-	clear RHQx;
+	HRHQx = H' * RHQx;
 
 
 %-----------------------%
 % Multiply by chol(Q)   %
 %-----------------------%
 
-	Ax = [];
-
-	for j = 1:ntimes;
-	Ax1   = zeros(m1,1);
-		for i = 1:ntimes;
-		sel = (m1.*(i-1)+1):(i.*m1);
-		Ax1 = Ax1 + HRHQx(sel) .* CD(j,i);
-		end; % End of i loop
-	temp = 	CE * Ax1;
-	Ax   =  [Ax; temp];
-	end; % End of i loop
-	clear Ax1 temp;
-
-	disp(toc);
+	Ax = Qchol * HRHQx;
 
 
 %-----------------------------------------------------------------------------------------------%

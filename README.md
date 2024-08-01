@@ -3,6 +3,9 @@ This repository contains Matlab code for conducting geostatistical inverse model
 
 Authors: Scot Miller and Arvind Saibaba. (Note: we want this code repository to be a collaborative effort, and the more authors/contributors, the better!)
 
+* This code has been updated to include new class definitions for Q and H. These new class definitions substantially simplify the code.
+(Class definitions are adopted from Julianne Chung and Taewon Cho.)
+
 ----------------------------------------------------------
 Introduction and overview
 ----------------------------------------------------------

@@ -2,6 +2,7 @@
 % FUNCTION: uncert_est.m									%
 % PURPOSE:  Approximate the posterior uncertainties using a reduced rank approach.		%
 % S. Miller, Nov. 16, 2018									%
+%	Updated July 24, 2024									%
 %												%
 %-----------------------------------------------------------------------------------------------%
 
@@ -31,16 +32,15 @@
 % BEGIN FUNCTION    %
 %-------------------%
 
-	function [ ] = uncert_est(D, E, X, theta, n, eigmax, Hpath, outpath, selu);
+	function [ ] = uncert_est(D, E, X, theta, n, eigmax, H, outpath, selu);
 
 	% FUNCTION INPUTS:
-	% D: 		Matrix that describes temporal covariances in the fluxes.
-	% E:		Matrix that describes spatial covariances in the fluxes.
+	% D,E: 		Components of the Q matrix
 	% X:		Matrix that contains the auxiliary variables.
 	% theta:	Vector with parameters that define the covariance matrices.
 	% n:		Number of observations in the inverse problem.
 	% eigmax:	Maximum number of eigenvalues and vectors to calculate.
-	% Hpath:	Path to the H matrix (i.e., sensitivity or footprint matrix).
+	% H:		Object of class matvecH that points to the H matrix strips.
 	% outpath:	Location where the outputs should be saved.
 	% selu:		Vector that contains the area of the model grid boxes that should
         %		be included in the uncertainty calculations. Fill the vector with 
@@ -75,10 +75,13 @@
 % Find the Cholesky decomposition of D and E   %
 %----------------------------------------------%
 
-	CD   = chol(D);
-	CE   = chol(E);
+	CD   = chol(D)'; % Transpose has better numerical stability in Matlab
+	CE   = chol(E)';
 	Dinv = inv(D);
 	Einv = inv(E);
+
+	Qchol = kronMat(CD,CE);
+	Qinv  = kronMat(Dine,Einv);
 
 
 %---------------------------------------------%
@@ -97,7 +100,7 @@
 	counter = 0;
 	save(strcat(Hpath,'counter_',num2str(eigmax),'.mat'),'counter');
 
-	f1 = @(x1) eigfun(CD, CE, theta, n, Hpath, x1);
+	f1 = @(x1) eigfun(Qchol, theta, n, H, x1);
 
 	disp('Number of eigenvalues/vectors to calculate');
 	disp(num2str(eigmax));
@@ -114,7 +117,7 @@
 	% Option (b): Run randomized eigen estimator  %
 	%---------------------------------------------%
 
-	[eigvec,eigval] = randeigdecomp(CD, CE, theta, n, Hpath, eigmax);
+	[eigvec,eigval] = randeigdecomp(Qchol, theta, n, H, eigmax);
 
 	% Save the calculated eigenvalues and vectors to file
 	save(eigfile,'eigvec','eigval','-v7.3');
@@ -145,19 +148,7 @@
         % Calculate inv(Q) * X
 
         % B = inv(Q) * X
-        QX = [];
-        m1  = size(E,1);
-
-        for j = 1:ntimes;
-        B1 = zeros(m1,size(X,2));
-                for i = 1:ntimes;
-                sel = (m1.*(i-1)+1):(i.*m1);
-                B1 = B1 + X(sel,:) .* Dinv(j,i);
-                end; % End of i loop
-        temp = Einv * B1;
-        QX = [QX; temp];
-        end; % End of i loop
-        clear B1 temp;
+	B = Qinv * X;
 
 
 %-----------------------------------------------------------------%
@@ -183,18 +174,7 @@
         %----------------------------------%
 
         % Multiply Q by aggregation vector
-        Qag = [];
-
-        for j = 1:ntimes;
-        A1 = zeros(m1,1);
-                for i = 1:ntimes;
-                sel = (m1.*(i-1)+1):(i.*m1);
-                A1 = A1 + agvec(sel) .* D(j,i);
-                end; % End of i loop
-        temp = E * A1;
-        Qag = [Qag; temp];
-        end; % End of i loop
-        clear A1 temp;
+        Qag = Q * agvec;
 
         % Finish calculating (agvec)' * Q * agvec
         V1a = agvec' * Qag;
@@ -221,7 +201,7 @@
 	% V2 = Q*inv(Q)*X - Q^(1/2)*B*A*B'*Q^(1/2)*inv(Q)*X
 	% V2 = X - Q^(1/2)*B*A*B'*Q^(1/2)*inv(Q)*X (Could simplify Q, but unlikely to save compute time)
 
-	[ QBABQx ] = QBABQ(CD, CE, eigvec, eigval, QX);
+	[ QBABQx ] = QBABQ(Qchol, eigvec, eigval, QX);
 
 	% Subtract from X to get V2
 	V2 = X - QBABQx;	

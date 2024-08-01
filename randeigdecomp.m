@@ -6,18 +6,17 @@
 %-------------------------------------------------------------------------------------------------------%
 
 
-function [V,D] = randeigdecomp(CD, CE, theta, n, Hpath, eigmax)
+function [V,D] = randeigdecomp(Qchol, theta, n, Hpath, eigmax)
      
     % Implements a prototype randomized eigendecomposition
     %  
     % Inputs:
     % -------
     % 
-    % CD      :     The Cholesky decomposition of matrix D.
-    % CE      :     The Cholesky decomposition of matrix E.
+    % Qchol   :     The Cholesky decomposition of Q (formatted as kronMat object).
     % theta   :     Matrix that contains covariance matrix parameters (see inversion_dual_eq.m) 
     % eigmax  :     target rank (i.e., number of eigenvalues/vectors to estimate)
-    % Hpath   :     Path to the H matrix (e.g., sensitivity matrix or matrix of footprints)
+    % H       :     H matrix (formatted as a matvecH class)
     % n       :     Total number of observations in the inverse problem.    
 
     % Outputs
@@ -30,7 +29,7 @@ function [V,D] = randeigdecomp(CD, CE, theta, n, Hpath, eigmax)
 	% Determine the dimensions of the inputs   %
 	%------------------------------------------%
 
-    	m = size(CD,1).*size(CE,1);
+    	m = size(Q,1);
 
 	% Set the oversampling parameter
     	p = 20;
@@ -53,7 +52,7 @@ function [V,D] = randeigdecomp(CD, CE, theta, n, Hpath, eigmax)
 
 	parfor l = 1:(eigmax+p);
 
-	Y(:,l) = eigfun(CD, CE, theta, n, Hpath, Omega(:,l));
+	Y(:,l) = eigfun(Qchol, theta, n, H, Omega(:,l));
 
 	end;
 
@@ -72,7 +71,7 @@ function [V,D] = randeigdecomp(CD, CE, theta, n, Hpath, eigmax)
     	%% T     = Q'*(A*Q);
 	temp = zeros(m,eigmax+p);
 	parfor l = 1:(eigmax + p);
-	temp(:,l) = eigfun(CD, CE, theta, n, Hpath, Q(:,l));
+	temp(:,l) = eigfun(Qchol, theta, n, H, Q(:,l));
 	end;
 	T = Q' * temp;
 	clear temp;
