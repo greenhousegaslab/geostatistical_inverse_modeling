@@ -156,15 +156,21 @@ PURPOSE: Estimate fluxes using a geostatistical inverse model, implemented using
 CALLED BY: None. <br>
 CALLS: cost_gradient_fun_transform.m
 
+SCRIPT: inversion_LBFGS_bounded.m <br>
+PURPOSE: Estimate fluxes using a geostatistical inverse model, implemented using 
+	the L-BFGS algorithm. This script will also enforce bounds on the solution
+ 	I.e., it will ensure that the estimated emissions are not negative. <br>
+CALLED BY: None. <br>
+CALLS: cost_gradient_fun.m
+
 SCRIPT: cost_gradient_fun_transform.m <br>
 PURPOSE: Calculate the cost function and gradient for the geostatistical inverse model. <br>
 CALLED BY: inversion_LBFGS.m <br>
 CALLS: None.
 
 SCRIPT: cost_gradient_fun.m <br>
-PURPOSE: Calculate the cost function and gradient function without a variable transformation. <br>
-CALLED BY: This function is not called by any other script. Rather, it is an alternative to the script
-cost_gradient_fun_transform.m. Specifically, this script is useful for inverse problems with bounds (e.g., non-negativity). If one wants to enforce bounds on an inversion, use this script can be used in place of cost_gradient_fun_transform.m and use with L-BFGS-B (the bounded version of L-BFGS) instead of L-BFGS.  <br>
+PURPOSE: Calculate the cost function and gradient function without a variable transformation. This function is an alternative to the script cost_gradient_fun_transform.m. Specifically, this script is useful for inverse problems with bounds (e.g., non-negativity). <br>
+CALLED BY: inversion_LBFGS_bounded.m <br>
 CALLS: None.
 
 
@@ -190,7 +196,7 @@ Here is a summary of the different scripts that can be used to run this case stu
 References
 ----------------------------------------------------------
 
-Miller, Scot M., Saibaba, Arvind K., Trudeau, Michael E., and Andrews, Arlyn E. "Geostatistical inverse modeling with very large datasets: an example from the OCO-2 satellite." Submitted to Geoscientific Model Development, 2019.
+Miller, S. M., Saibaba, A. K., Trudeau, M. E., Mountain, M. E., and Andrews, A. E.: Geostatistical inverse modeling with very large datasets: an example from the Orbiting Carbon Observatory 2 (OCO-2) satellite, Geosci. Model Dev., 13, 1771–1785, https://doi.org/10.5194/gmd-13-1771-2020, 2020.
 
 ----------------------------------------------------------
 Contact information
