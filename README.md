@@ -206,7 +206,7 @@ Scot Miller <br>
 Johns Hopkins University <br>
 Department of Environmental Health and Engineering <br>
 Email: smill191 [at] jhu.edu OR scot.m.miller [at] gmail.com <br>
-http://greenhousegaslab.org/ 
+https://scotmmiller.github.io/ 
 
 Arvind Saibaba <br>
 North Carolina State University <br>
