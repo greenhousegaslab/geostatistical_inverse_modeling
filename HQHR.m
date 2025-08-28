@@ -11,16 +11,14 @@
 	%-----------%
 		
 
-function [ psi ] = HQHR(R, D, E, Hpath);
+function [ psi ] = HQHR(R, D, E, H);
 
 	% INPUTS:
-	% H:		Sensitivity matrix (dimensions n x m)
 	% R:		Model-data mismatch covariance matrix.
 	% D: 		Matrix that describes temporal covariances in the fluxes
 	%		(This matrix should be multiplied by the variance in Q.)
 	% E: 		Matrix that describes spatial covariances in the fluxes
-	% Hpath:	Path to the H matrix. See the readme file for more info on 
-	%		options for handling H.
+	% H:		The H matrix (i.e., footprints). We recommend using the function "matvecH" to create this object.
 
 	% OUTPUTS:
 	% psi:		(HQH' + R)
@@ -35,6 +33,12 @@ function [ psi ] = HQHR(R, D, E, Hpath);
 	m1      = size(E,1);
         ntimes  = size(D,1);
 
+%--------------------------------------%
+% Create Q using the kronMat function. %
+%--------------------------------------%
+
+	Q = kronMat(D,E);
+
 
 %---------------------%
 % Calculate HQH       %
@@ -42,30 +46,8 @@ function [ psi ] = HQHR(R, D, E, Hpath);
 
 	disp('Calculate HQH');
 
-	psi = sparse(n,n);
-
-	for j = 1:ntimes;
-	disp(j);
-	for i = 1:ntimes;
-	if D(i,j) > 0 | i==1;
-        	load(strcat(Hpath,'H_',num2str(i),'.mat'));
-		if i==1; 
-		HQ1 = H .* D(i,j);
-		else;
-		HQ1 = HQ1 + H .* D(i,j);
-		end; % End of if statement
-	end; % End of if statement
-	end; % End of i loop
-
-	HQ1 = HQ1 * E;
-
-        load(strcat(Hpath,'H_',num2str(j),'.mat'));
-	HQ1 = HQ1 * H';
-
-	psi = psi + HQ1;
-
-	end; % End of j loop
-	clear HQ1;
+	psi = (H*Q)';
+	psi = H * psi;
 	
 
 %---------------------------%
